@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/zakwarsame/tinyapp/issues"
   },
-  "homepage": "https://github.com/zakwarsame/tinyapp#readme"
+  "homepage": "https://github.com/zakwarsame/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
