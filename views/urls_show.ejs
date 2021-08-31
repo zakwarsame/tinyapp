@@ -9,10 +9,10 @@
 </head>
 
 <body>
-    <%- include ('./partials/_header') %>
+    
 
         <div class="card text-center">
-            <div class="card-header"></div>
+            <div class="card-header"><%- include ('./partials/_header') %></div>
             <div class="card-body">
                 <h5 class="card-title">TinyURL for: <a href="<%= longURL %>" target="_blank">
                     <%= longURL %>
@@ -22,10 +22,15 @@
                         <%= shortURL %>
                     </a></p>
             </div>
-            <div>
+            <div class="container">
             <form method="POST" action="/urls/<%= shortURL%>/" >
-                <input type='text' name='longURL' value='<%= longURL %>' />
-                <button type="submit" class="btn btn-outline-success">Update</button>
+                <div class="input-group mb-3 row">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="inputGroup-sizing-default">Edit URL</span>
+                    </div>
+                    <input type="text" class="form-control col-8" aria-label="Default" name='longURL' value='<%= longURL %>'  aria-describedby="inputGroup-sizing-default">
+                    <button type="submit" class="ml-4 btn btn-outline-success">Update</button>
+                  </div>
             </form>
         </div>
             <div class="card-footer text-muted"></div>
