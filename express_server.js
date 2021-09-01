@@ -29,7 +29,21 @@ const users = {
 
 
 
-
+  const addNewUser = (name, email, password) => {
+    // Create a user id ... generate a unique id
+    const userId = generateRandomString();
+    // Create a new user object
+    const newUser = {
+      id: userId,
+      name,
+      email,
+      password,
+    };
+    // Add the user to the database
+    users[userId] = newUser;
+  
+    return userId;
+  };
 
 
 // User Authentication
