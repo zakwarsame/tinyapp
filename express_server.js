@@ -42,11 +42,28 @@ const addNewUser = (name, email, password) => {
   return userId;
 };
 
+
+// User Authentication
+
 const findUserByEmail = (email) => {
     return Object.values(users).find(userObj => userObj.email === email)
   }
 
-// User Authentication
+const authenticateUser = (email, password) => {
+
+    // loop through the users db => object
+    const user = findUserByEmail(email);
+    // check that values of email and password if they match
+    if (user && user.password === password) {
+      // return user id if it matches
+      return user.id;
+    }
+  
+    // default return false
+    return false;
+  
+  }
+  
 
 // Display the register form
 app.get("/register", (req, res) => {
