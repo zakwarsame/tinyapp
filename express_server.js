@@ -13,57 +13,51 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
-const users = { 
-    "userRandomID": {
-      id: "userRandomID", 
-      email: "user@example.com", 
-      password: "purple-monkey-dinosaur"
-    },
-   "user2RandomID": {
-      id: "user2RandomID", 
-      email: "user2@example.com", 
-      password: "dishwasher-funk"
-    }
-  }
-  
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
 
-
-
-  const addNewUser = (name, email, password) => {
-    // Create a user id ... generate a unique id
-    const userId = generateRandomString();
-    // Create a new user object
-    const newUser = {
-      id: userId,
-      name,
-      email,
-      password,
-    };
-    // Add the user to the database
-    users[userId] = newUser;
-  
-    return userId;
+const addNewUser = (name, email, password) => {
+  // Create a user id ... generate a unique id
+  const userId = generateRandomString();
+  // Create a new user object
+  const newUser = {
+    id: userId,
+    name,
+    email,
+    password,
   };
+  // Add the user to the database
+  users[userId] = newUser;
 
-  
+  return userId;
+};
+
+const findUserByEmail = (email) => {
+    return Object.values(users).find(userObj => userObj.email === email)
+  }
 
 // User Authentication
 
 // Display the register form
-app.get('/register', (req, res) => {
-    const templateVars = { username: req.cookies["username"], };
-    res.render('register', templateVars);
+app.get("/register", (req, res) => {
+  const templateVars = { username: req.cookies["username"] };
+  res.render("register", templateVars);
 });
 
-app.post('/register', (req, res) => {
-
-    const {name, email, password} = req.body
-    console.log(name, email, password)
-  
-  })
-
-  
-
+app.post("/register", (req, res) => {
+  const { name, email, password } = req.body;
+  console.log(name, email, password);
+});
 
 app.post("/urls", (req, res) => {
   // create a key value pair and put them in the urlDatabase (a new short url is generated, longURL is coming from the POST made by a form)
@@ -73,7 +67,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.redirect('/urls');
+  res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
