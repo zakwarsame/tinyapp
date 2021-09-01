@@ -45,6 +45,7 @@ const users = {
     return userId;
   };
 
+  
 
 // User Authentication
 
@@ -53,6 +54,13 @@ app.get('/register', (req, res) => {
     const templateVars = { username: req.cookies["username"], };
     res.render('register', templateVars);
 });
+
+app.post('/register', (req, res) => {
+
+    const {name, email, password} = req.body
+    console.log(name, email, password)
+  
+  })
 
   
 
