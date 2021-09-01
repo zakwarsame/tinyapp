@@ -9,9 +9,30 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
+  "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
+
+
+
+
+
+
+
+
+
+
+// User Authentication
+
+// Display the register form
+app.get('/register', (req, res) => {
+    const templateVars = { username: req.cookies["username"], };
+    res.render('register', templateVars);
+});
+
+
+  
+
 
 app.post("/urls", (req, res) => {
   // create a key value pair and put them in the urlDatabase (a new short url is generated, longURL is coming from the POST made by a form)
@@ -21,7 +42,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect('/urls');
 });
 
 app.get("/urls", (req, res) => {
