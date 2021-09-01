@@ -20,8 +20,6 @@ const urlDatabase = {
 
 
 
-
-
 // User Authentication
 
 // Display the register form
@@ -29,7 +27,6 @@ app.get('/register', (req, res) => {
     const templateVars = { username: req.cookies["username"], };
     res.render('register', templateVars);
 });
-
 
   
 
