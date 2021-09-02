@@ -128,7 +128,10 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-
+app.get("/login", (req, res) => {
+  const templateVars = { user : null, message:null};
+  res.render('login', templateVars);
+});
 
 app.post("/login", (req, res) => {
   const { name, email, password } = req.body;
