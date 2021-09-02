@@ -137,7 +137,16 @@ app.post("/login", (req, res) => {
   const { name, email, password } = req.body;
   const userId = authenticateUser(email, password);
 
-  
+  if (userId) {
+    res.cookie('user_id', userId);
+    res.redirect('/urls')
+  } else {
+    res.status(401).render('login', {
+      message: 'Wrong credentials',
+      messageClass: 'alert-danger',
+      user:null
+  });
+  }
 });
 
 app.post("/logout", (req, res) => {
