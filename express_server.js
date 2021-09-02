@@ -42,38 +42,46 @@ const addNewUser = (name, email, password) => {
   return userId;
 };
 
-
 // User Authentication
 
 const findUserByEmail = (email) => {
-    return Object.values(users).find(userObj => userObj.email === email)
-  }
+  return Object.values(users).find((userObj) => userObj.email === email);
+};
 
 const authenticateUser = (email, password) => {
-
-    // loop through the users db => object
-    const user = findUserByEmail(email);
-    // check that values of email and password if they match
-    if (user && user.password === password) {
-      // return user id if it matches
-      return user.id;
-    }
-  
-    // default return false
-    return false;
-  
+  // loop through the users db => object
+  const user = findUserByEmail(email);
+  // check that values of email and password if they match
+  if (user && user.password === password) {
+    // return user id if it matches
+    return user.id;
   }
-  
+
+  // default return false
+  return false;
+};
 
 // Display the register form
 app.get("/register", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
+  console.log(req.cookies)
+  const templateVars = { user : null};
   res.render("register", templateVars);
 });
 
 app.post("/register", (req, res) => {
   const { name, email, password } = req.body;
-  console.log(name, email, password);
+  // check that the user is not already in the database
+  const user = findUserByEmail(email);
+  // if user is undefined, we can add the user in the db
+  if (!user) {
+    const userId = addNewUser(name, email, password);
+
+    // Set cookie in the user's browser
+    res.cookie("user_id", userId);
+    res.redirect("/urls");
+  } else {
+    res.status(403).send("User is already registered!");
+  }
 });
 
 app.post("/urls", (req, res) => {
@@ -88,8 +96,10 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+    const userId = req.cookies['user_id'];
+    const currentUser = users[userId];
   const templateVars = {
-    username: req.cookies["username"],
+    user : currentUser,
     urls: urlDatabase,
   };
   res.render("urls_index", templateVars);
@@ -97,14 +107,14 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user : req.cookies['user_id'],
   };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user : req.cookies['user_id'],
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
   };
@@ -116,12 +126,12 @@ app.listen(PORT, () => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
+  res.cookie("user", req.cookies['user_id']);
   res.redirect(`/urls/`);
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie('user_id');
   res.redirect(`/urls/`);
 });
 
