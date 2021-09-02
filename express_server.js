@@ -11,11 +11,11 @@ app.use(cookieParser());
 const urlDatabase = {
   b6UTxQ: {
       longURL: "https://www.tsn.ca",
-      userID: "aJ48lW"
+      userID: "userRandomID"
   },
   i3BoGr: {
       longURL: "https://www.google.ca",
-      userID: "aJ48lW"
+      userID: "user2RandomID"
   }
 };
 
@@ -28,7 +28,7 @@ const users = {
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: "dish",
   },
 };
 
@@ -109,10 +109,11 @@ app.post("/urls", (req, res) => {
   if (!user) {
     return res.redirect(`/urls`);
   }
-
-
   const newShortUrl = generateRandomString();
-  urlDatabase[newShortUrl] = req.body.longURL;
+  urlDatabase[newShortUrl] = {
+    longURL: req.body.longURL,
+    userID: newShortUrl
+  }
   res.redirect(`/urls/${newShortUrl}`);
 });
 
@@ -121,11 +122,13 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-    const userId = req.cookies['user_id'];
-    const currentUser = users[userId];
+    const currentUser = users[req.cookies['user_id']];
+    const urls = urlsForUser(urlDatabase, req.cookies["user_id"]);
+    // console.log(urls)
+
   const templateVars = {
     user : currentUser,
-    urls: urlDatabase,
+    urls,
   };
   res.render("urls_index", templateVars);
 });
@@ -142,16 +145,19 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {
     user : currentUser,
   };
-  console.log(users)
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  const currentUser = users[req.cookies['user_id']];
+
+
   const templateVars = {
-    user : req.cookies['user_id'],
+    user: currentUser,
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
   };
+  
   res.render("urls_show", templateVars);
 });
 
@@ -188,14 +194,20 @@ app.post("/logout", (req, res) => {
 // URL REDIRECTS
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  if (!longURL) {
-    res.status(404).send({ error: "Short URL not found!" });
+  const urlObj = urlDatabase[req.params.shortURL];
+
+  if (!urlObj) {
+    return res.status(404).send({ error: "Short URL not found!" });
   }
-  res.redirect(longURL);
+  res.redirect(urlObj.longURL);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  const user = req.cookies["user_id"];
+  const shortURL = req.params.shortURL;
+  if (!user || urlDatabase[shortURL].userID !== user) {
+    return res.status(403).send('You dont have access to this command');
+  }
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
@@ -204,11 +216,11 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.post("/urls/:shortURL", (req, res) => {
   const user = req.cookies["user_id"];
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  if (!user !== user.id) {
-    res.statusCode = 401;
-    return res.send({ error: 'Unauthorized action' });
+  const shortURL = req.params.shortURL;
+  if (!user || urlDatabase[shortURL].userID !== user) {
+    return res.status(403).send({ error: 'Unauthorized action' });
   }
+  urlDatabase[shortURL].longURL = req.body.longURL
   res.redirect("/urls");
 });
 
@@ -226,4 +238,17 @@ function generateRandomString() {
   return [...Array(6)]
     .map((i) => alphanumerics[(Math.random() * alphanumerics.length) | 0])
     .join("");
+}
+
+
+//Returns the URLS that belong to users
+const urlsForUser = function (urlDatabase, userId) {
+  let matchURLs = {};
+
+  for (let url in urlDatabase) {
+    if (urlDatabase[url].userID === userId) {
+      matchURLs[url] = urlDatabase[url]
+    }
+  }
+  return matchURLs;
 }
