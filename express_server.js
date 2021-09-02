@@ -9,8 +9,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+      longURL: "https://www.tsn.ca",
+      userID: "aJ48lW"
+  },
+  i3BoGr: {
+      longURL: "https://www.google.ca",
+      userID: "aJ48lW"
+  }
 };
 
 const users = {
@@ -96,8 +102,15 @@ app.post("/register", (req, res) => {
   }
 });
 
+// create a key value pair and put them in the urlDatabase (a new short url is generated, longURL is coming from the POST made by a form)
 app.post("/urls", (req, res) => {
-  // create a key value pair and put them in the urlDatabase (a new short url is generated, longURL is coming from the POST made by a form)
+
+  const user = req.cookies["user_id"];
+  if (!user) {
+    return res.redirect(`/urls`);
+  }
+
+
   const newShortUrl = generateRandomString();
   urlDatabase[newShortUrl] = req.body.longURL;
   res.redirect(`/urls/${newShortUrl}`);
@@ -118,9 +131,18 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+
+  const userId = req.cookies["user_id"];
+  const currentUser = users[userId];
+
+  if (!userId) {
+    return res.redirect(`/urls`);
+  }
+
   const templateVars = {
-    user : req.cookies['user_id'],
+    user : currentUser,
   };
+  console.log(users)
   res.render("urls_new", templateVars);
 });
 
@@ -181,8 +203,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // UPDATING the database
 
 app.post("/urls/:shortURL", (req, res) => {
-  console.log(req.params.shortURL, req.body);
+  const user = req.cookies["user_id"];
   urlDatabase[req.params.shortURL] = req.body.longURL;
+  if (!user !== user.id) {
+    res.statusCode = 401;
+    return res.send({ error: 'Unauthorized action' });
+  }
   res.redirect("/urls");
 });
 
