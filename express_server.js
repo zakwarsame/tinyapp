@@ -83,7 +83,11 @@ app.post("/register", (req, res) => {
     res.cookie("user_id", userId);
     res.redirect("/urls");
   } else {
-    res.status(403)
+    res.status(403).render('register', {
+      message: 'User already exists',
+      messageClass: 'alert-danger',
+      user:null
+  });
   }
 });
 
