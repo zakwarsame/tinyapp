@@ -143,7 +143,7 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const { name, email, password } = req.body;
+  const { email, password } = req.body;
   const userId = authenticateUser(email, password);
 
   if (userId) {
