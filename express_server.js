@@ -2,13 +2,17 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-var bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
+var cookieSession = require('cookie-session')
 
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['lemonjuice','vanillaicecream'],
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 
 const urlDatabase = {
   b6UTxQ: {
@@ -59,11 +63,12 @@ const findUserByEmail = (email) => {
 const authenticateUser = (email, password) => {
   // loop through the users db => object
   const user = findUserByEmail(email);
-  const hashedPassword = user.password;
   // check that values of email and password if they match
-  if (user && bcrypt.compareSync(password, hashedPassword)) {
-    // return user id if it matches
-    return user.id;
+  if (user) {
+    const hashedPassword = user.password;
+    if(bcrypt.compareSync(password, hashedPassword)){
+      return user.id;
+    }
   }
 
   // default return false
@@ -93,10 +98,10 @@ app.post("/register", (req, res) => {
   if (!user) {
     const userId = addNewUser(name, email, hashPassword);
 
-    // Set cookie in the user's browser
-    res.cookie("user_id", userId);
+    // Set cookie session in the user's browser
+    req.session.user_id = userId;
     console.log(users)
-    res.redirect("/urls");
+    return res.redirect("/urls");
   } else {
     res.status(403).render('register', {
       message: 'User already exists',
@@ -109,14 +114,14 @@ app.post("/register", (req, res) => {
 // create a key value pair and put them in the urlDatabase (a new short url is generated, longURL is coming from the POST made by a form)
 app.post("/urls", (req, res) => {
 
-  const user = req.cookies["user_id"];
+  const user = req.session.user_id;
   if (!user) {
     return res.redirect(`/urls`);
   }
   const newShortUrl = generateRandomString();
   urlDatabase[newShortUrl] = {
     longURL: req.body.longURL,
-    userID: newShortUrl
+    userID: req.session.user_id,
   }
   res.redirect(`/urls/${newShortUrl}`);
 });
@@ -126,20 +131,20 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-    const currentUser = users[req.cookies['user_id']];
-    const urls = urlsForUser(urlDatabase, req.cookies["user_id"]);
-    // console.log(urls)
+    const currentUser = users[req.session.user_id];
+    const urls = urlsForUser(urlDatabase, req.session.user_id);
+    console.log(users, req.session.user_id, urlDatabase)
 
   const templateVars = {
     user : currentUser,
     urls,
   };
-  res.render("urls_index", templateVars);
+  return res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
 
-  const userId = req.cookies["user_id"];
+  const userId = req.session.user_id;
   const currentUser = users[userId];
 
   if (!userId) {
@@ -153,9 +158,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const currentUser = users[req.cookies['user_id']];
-
-
+  const currentUser = users[req.session.user_id];
   const templateVars = {
     user: currentUser,
     shortURL: req.params.shortURL,
@@ -179,7 +182,7 @@ app.post("/login", (req, res) => {
   const userId = authenticateUser(email, password);
 
   if (userId) {
-    res.cookie('user_id', userId);
+    req.session.user_id = userId;
     res.redirect('/urls')
   } else {
     res.status(401).render('login', {
@@ -191,7 +194,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls/');
 });
 
@@ -207,7 +210,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const user = req.cookies["user_id"];
+  const user = req.session.user_id;
   const shortURL = req.params.shortURL;
   if (!user || urlDatabase[shortURL].userID !== user) {
     return res.status(403).send('You dont have access to this command');
@@ -219,7 +222,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // UPDATING the database
 
 app.post("/urls/:shortURL", (req, res) => {
-  const user = req.cookies["user_id"];
+  const user = req.session.user_id;
   const shortURL = req.params.shortURL;
   if (!user || urlDatabase[shortURL].userID !== user) {
     return res.status(403).send({ error: 'Unauthorized action' });
