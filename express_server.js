@@ -63,8 +63,7 @@ const authenticateUser = (email, password) => {
 
 // Display the register form
 app.get("/register", (req, res) => {
-  console.log(req.cookies)
-  const templateVars = { user : null};
+  const templateVars = { user : null, message:null};
   res.render("register", templateVars);
 });
 
@@ -72,6 +71,10 @@ app.post("/register", (req, res) => {
   const { name, email, password } = req.body;
   // check that the user is not already in the database
   const user = findUserByEmail(email);
+  // check that password and email was provided
+
+
+
   // if user is undefined, we can add the user in the db
   if (!user) {
     const userId = addNewUser(name, email, password);
@@ -80,7 +83,7 @@ app.post("/register", (req, res) => {
     res.cookie("user_id", userId);
     res.redirect("/urls");
   } else {
-    res.status(403).send("User is already registered!");
+    res.status(403)
   }
 });
 
@@ -125,14 +128,18 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
+
+
 app.post("/login", (req, res) => {
-  res.cookie("user", req.cookies['user_id']);
-  res.redirect(`/urls/`);
+  const { name, email, password } = req.body;
+  const userId = authenticateUser(email, password);
+
+  
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
-  res.redirect(`/urls/`);
+  res.redirect('/urls/');
 });
 
 // URL REDIRECTS
