@@ -72,9 +72,14 @@ app.post("/register", (req, res) => {
   // check that the user is not already in the database
   const user = findUserByEmail(email);
   // check that password and email was provided
+  if (!password || !email){
+    return res.status(400).render('register', {
+      message: 'Please fill out both email and password',
+      messageClass: 'alert-danger',
+      user:null
+  });
 
-
-
+  }
   // if user is undefined, we can add the user in the db
   if (!user) {
     const userId = addNewUser(name, email, password);
