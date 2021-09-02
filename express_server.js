@@ -3,8 +3,8 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const bcrypt = require('bcryptjs');
-var cookieSession = require('cookie-session')
-
+const cookieSession = require('cookie-session')
+const { findUserByEmail, generateRandomString} = require('./helpers');
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -56,13 +56,9 @@ const addNewUser = (name, email, password) => {
 
 // User Authentication
 
-const findUserByEmail = (email) => {
-  return Object.values(users).find((userObj) => userObj.email === email);
-};
-
 const authenticateUser = (email, password) => {
   // loop through the users db => object
-  const user = findUserByEmail(email);
+  const user = findUserByEmail(email, users);
   // check that values of email and password if they match
   if (user) {
     const hashedPassword = user.password;
@@ -84,7 +80,7 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const { name, email, password } = req.body;
   // check that the user is not already in the database
-  const user = findUserByEmail(email);
+  const user = findUserByEmail(email, users);
   // check that password and email was provided
   if (!password || !email){
     return res.status(400).render('register', {
@@ -231,22 +227,10 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls");
 });
 
+
+
+
 // FUNCTIONS
-
-function generateRandomString() {
-  //store all alphanumerics in a string
-  const alphanumerics =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-  // use spreader to create an array with 6 empty elements
-  // loop through them and generate a random number number each time (use 0 otherwise)
-  // store that number and pass it as an index within the alphanumerics string
-  // join the characters
-  return [...Array(6)]
-    .map((i) => alphanumerics[(Math.random() * alphanumerics.length) | 0])
-    .join("");
-}
-
 
 //Returns the URLS that belong to users
 const urlsForUser = function (urlDatabase, userId) {
