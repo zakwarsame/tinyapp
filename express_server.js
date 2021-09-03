@@ -42,23 +42,23 @@ const users = {
 
 // ---- FUNCTIONS START ----
 
+// Create a user id ... generate a unique id
+// Create a new user object
+// Add the user to the database
 const addNewUser = (name, email, password) => {
-  // Create a user id ... generate a unique id
   const userId = generateRandomString();
-  // Create a new user object
   const newUser = {
     id: userId,
     name,
     email,
     password,
   };
-  // Add the user to the database
   users[userId] = newUser;
 
   return userId;
 };
 
-//Returns the URLS that belong to users
+//Returns the URLS that belongs to each user
 const urlsForUser = function (urlDatabase, userId) {
   let matchURLs = {};
 
@@ -72,8 +72,7 @@ const urlsForUser = function (urlDatabase, userId) {
 
 // User Authentication
 // loop through the users db => object
-// check that values of email and password if they match
-// default return false
+// check uf values of email and password match defaults return false
 const authenticateUser = (email, password) => {
   const user = findUserByEmail(email, users);
   if (user) {
@@ -100,8 +99,6 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const currentUser = users[req.session.user_id];
   const urls = urlsForUser(urlDatabase, req.session.user_id);
-  console.log(users, req.session.user_id, urlDatabase);
-
   const templateVars = {
     user: currentUser,
     urls,
@@ -250,7 +247,6 @@ app.post("/register", (req, res) => {
 
     // Set cookie session in the user's browser
     req.session.user_id = userId;
-    console.log(users);
     return res.redirect("/urls");
   } else {
     res.status(403).render("register", {
