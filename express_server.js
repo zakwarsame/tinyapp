@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8000; // default port 8080
 const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
@@ -123,10 +123,16 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const userId = req.session.user_id;
   const currentUser = users[userId];
-  if (!currentUser || !userId) {
+  const shortURL = req.params.shortURL;
+  if (urlDatabase[shortURL].userID !== userId) {
     return res
       .status(400)
-      .send("<h3>Please login before accessing this page</h3>");
+      .send("<h3>Unauthorized to access this page</h3>");
+  }
+  if(!userId || !currentUser){
+    return res
+    .status(400)
+    .send("<h3>Please login before accessing this page</h3>");
   }
   if (!urlDatabase[req.params.shortURL]) {
     return res
