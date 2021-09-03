@@ -148,7 +148,7 @@ app.get("/u/:shortURL", (req, res) => {
   const urlObj = urlDatabase[req.params.shortURL];
 
   if (!urlObj) {
-    return res.status(404).send("Oops! The short URL provided does not exist");
+    return res.status(404).send("Oops! The Tiny URL provided does not exist");
   }
   res.redirect(urlObj.longURL);
 });
