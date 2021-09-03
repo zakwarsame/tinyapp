@@ -71,6 +71,16 @@ const authenticateUser = (email, password) => {
   return false;
 };
 
+
+// GET routes
+
+app.get("/", (req, res) => {
+  if (req.session.user_id && users[req.session.user_id]) {
+    return res.redirect('/urls/');
+  }
+  res.redirect("/login");
+});
+
 // Display the register form
 app.get("/register", (req, res) => {
   const templateVars = { user : null, message:null};
@@ -122,9 +132,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newShortUrl}`);
 });
 
-app.get("/", (req, res) => {
-  res.redirect("/urls");
-});
+
 
 app.get("/urls", (req, res) => {
     const currentUser = users[req.session.user_id];
@@ -154,7 +162,14 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const currentUser = users[req.session.user_id];
+  const userId = req.session.user_id;
+  const currentUser = users[userId];
+  if (!currentUser || !userId) {
+    return res.status(400).send("<h3>Please login before accessing this page</h3>");
+  }
+  if(!urlDatabase[req.params.shortURL]){
+    return res.status(400).send("<h3>Uknown url. Please make sure you have created the URL first.</h3>")
+  }
   const templateVars = {
     user: currentUser,
     shortURL: req.params.shortURL,
@@ -169,6 +184,9 @@ app.listen(PORT, () => {
 });
 
 app.get("/login", (req, res) => {
+  if (req.session.user_id && users[req.session.user_id]) {
+    return res.redirect('/urls/');
+  }
   const templateVars = { user : null, message:null};
   res.render('login', templateVars);
 });
@@ -200,7 +218,7 @@ app.get("/u/:shortURL", (req, res) => {
   const urlObj = urlDatabase[req.params.shortURL];
 
   if (!urlObj) {
-    return res.status(404).send({ error: "Short URL not found!" });
+    return res.status(404).send("Oops! The short URL provided does not exist");
   }
   res.redirect(urlObj.longURL);
 });
@@ -221,7 +239,7 @@ app.post("/urls/:shortURL", (req, res) => {
   const user = req.session.user_id;
   const shortURL = req.params.shortURL;
   if (!user || urlDatabase[shortURL].userID !== user) {
-    return res.status(403).send({ error: 'Unauthorized action' });
+    return res.status(403).send("Unauthorized action. Please login to create your own URL.");
   }
   urlDatabase[shortURL].longURL = req.body.longURL
   res.redirect("/urls");
